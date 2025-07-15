@@ -1,148 +1,107 @@
-# AzureBackend – Serverless Task Manager API
+# 🧠 Task Manager Backend — Azure Functions (.NET 8 Isolated)
 
-This is a serverless backend built with **.NET isolated worker Azure Functions**, using **Cosmos DB** as the database and **JWT authentication** for secure login. It powers a task management app with scalable, cloud-native architecture.
-
-## 🚀 Features
-
-- ✅ User Registration with validation
-- ✅ Secure Login using **JWT tokens**
-- ✅ Cosmos DB integration with auto-generated user IDs
-- ✅ Azure Functions (.NET 8 isolated worker model)
-- ✅ Ready to extend with protected endpoints (e.g., task management)
+This is a secure, serverless backend for a Task Manager app, powered by **Azure Functions**, **.NET 8 Isolated Worker**, and **Cosmos DB**. Built for modern, stateless APIs with JWT-based authentication.
 
 ---
 
-## 📁 Project Structure
+## 🚀 Features
+
+- ✅ **User Registration**
+- 🔐 **Login with JWT authentication**
+- 👤 **JWT-protected task endpoints**
+- 📄 **CRUD Operations** for Tasks:
+  - Create Task
+  - Get All Tasks (per user)
+  - Get Task by ID
+  - Update Task (e.g. mark as complete or edit title/description)
+  - Delete Task
+- 🪪 **Authorization handled via JWT claims**
+- 🗂 **Cosmos DB** integration for `Users` and `Tasks` containers
+- 🧪 **Tested with Postman & curl**
+- 📦 Uses `Newtonsoft.Json` for stable deserialization
+- 🧼 Logout handled via frontend by removing JWT token (no server-side session)
+
+---
+
+## 🛠️ Technologies Used
+
+- [.NET 8 Isolated Worker SDK](https://learn.microsoft.com/en-us/azure/azure-functions/dotnet-isolated-process-guide)
+- Azure Functions
+- Azure Cosmos DB (NoSQL API)
+- JWT Authentication with `System.IdentityModel.Tokens.Jwt`
+- `Newtonsoft.Json` for request/response parsing
+
+---
+
+## 🔐 Environment Variables
+
+These must be set for secure token generation and Cosmos DB access.
+
+| Key                        | Description                              |
+| -------------------------- | ---------------------------------------- |
+| `JWT_SECRET`               | Secret key for signing JWTs              |
+| `JWT_ISSUER`               | Issuer (e.g. `https://yourdomain`)       |
+| `JWT_AUDIENCE`             | Audience (e.g. `https://yourclient`)     |
+| `CosmosDBConnectionString` | Your Cosmos DB primary connection string |
+
+---
+
+## 📁 Folder Structure
 
 ```
 azurebackend/
+│
 ├── Models/
-│   └── UserModel.cs
+│   ├── UserModel.cs
+│   └── TaskModel.cs
+│
 ├── RegisterUser.cs
 ├── LoginUser.cs
+├── CreateTask.cs
+├── GetTasks.cs
+├── GetTaskById.cs
+├── UpdateTask.cs
+├── DeleteTask.cs
+│
 ├── Program.cs
 └── azurebackend.csproj
 ```
 
 ---
 
-## 🔐 Authentication
-
-### ✅ JWT Tokens
-
-- JWT tokens are generated using the user ID and email.
-- The token is signed using a secret key from environment variables.
-
-### Required Environment Variables
-
-Add these variables to your local `.env` file or Azure configuration:
-
-| Variable       | Description                        |
-| -------------- | ---------------------------------- |
-| `JWT_SECRET`   | A strong secret for signing tokens |
-| `JWT_ISSUER`   | Your API's domain or app name      |
-| `JWT_AUDIENCE` | Intended audience for the token    |
-
----
-
-## 🗃 Database
-
-- Uses **Azure Cosmos DB (SQL API)**.
-- A container named `Users` stores registered users.
-- Each user document includes:
-  - `id`: Auto-generated GUID
-  - `email`: Unique user email
-  - `password`: Stored in plain text (🛑 _should be hashed for production_)
-
----
-
-## 📬 API Endpoints
-
-### Register User
-
-**POST** `/api/RegisterUser`
-
-**Body:**
+## 📬 Example JSON Request: Register/Login
 
 ```json
 {
-  "email": "user@example.com",
-  "password": "securepassword"
-}
-```
-
-**Response:** `201 Created` or `400 Bad Request`
-
----
-
-### Login User
-
-**POST** `/api/LoginUser`
-
-**Body:**
-
-```json
-{
-  "email": "user@example.com",
-  "password": "securepassword"
-}
-```
-
-**Response:** `200 OK`
-
-```json
-{
-  "token": "your.jwt.token"
+  "email": "may@example.com",
+  "password": "password123"
 }
 ```
 
 ---
 
-## 🛠 How to Run Locally
+## 🧾 Example JSON Request: Create Task
 
-```bash
-# Restore dependencies
-dotnet restore
-
-# Build the project
-dotnet build
-
-# Run the Azure Function app
-func start
+```json
+{
+  "title": "Finish README",
+  "description": "Complete the project documentation",
+  "userEmail": "may@example.com"
+}
 ```
 
-Make sure your `local.settings.json` or environment variables are set up for Cosmos DB and JWT.
+---
 
 ---
 
-## 🔧 Tech Stack
+## ✅ Status
 
-- **Azure Functions** (Isolated Worker, .NET 8)
-- **Azure Cosmos DB** (SQL API)
-- **JWT Authentication**
-- **Newtonsoft.Json** for reliable serialization
-- **C#** (.NET 8)
+✅ All endpoints implemented  
+✅ CosmosDB integration complete  
+🔜 Frontend connection via Blazor (in progress)
 
 ---
 
-## ✅ Future Improvements
+## 📄 License
 
-- 🔒 Add password hashing with `PasswordHasher`
-- 🧠 Add user role claims
-- 📌 Add protected endpoints for managing tasks (CRUD)
-- 🧪 Add unit tests and integration tests
-- ☁️ Deploy using GitHub Actions or Azure Pipelines
-
----
-
-## 💬 Author
-
-**Mayowa Oladimeji**  
-Built with 💙 using .NET and Azure  
-Feel free to contribute or fork the repo!
-
----
-
-## 📜 License
-
-MIT License
+MIT License — © Mayowa Oladimeji
