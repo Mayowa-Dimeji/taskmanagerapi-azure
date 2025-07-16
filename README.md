@@ -6,19 +6,22 @@ This is a secure, serverless backend for a Task Manager app, powered by **Azure 
 
 ## 🚀 Features
 
-- ✅ **User Registration**
+- ✅ **User Registration** with `username`, `email`, and `password`
 - 🔐 **Login with JWT authentication**
 - 👤 **JWT-protected task endpoints**
 - 📄 **CRUD Operations** for Tasks:
-  - Create Task
+  - Create Task (with `priority`, `tags`, `dueDate`)
   - Get All Tasks (per user)
-  - Get Task by ID
-  - Update Task (e.g. mark as complete or edit title/description)
+  - Filter Tasks by:
+    - `priority`: low / medium / high
+    - `isCompleted`: true / false
+    - `dueDate`: today / tomorrow
+  - Update Task (any property incl. title, description, completion status, etc.)
   - Delete Task
 - 🪪 **Authorization handled via JWT claims**
 - 🗂 **Cosmos DB** integration for `Users` and `Tasks` containers
 - 🧪 **Tested with Postman & curl**
-- 📦 Uses `Newtonsoft.Json` for stable deserialization
+- 📦 Uses `Newtonsoft.Json` for consistent JSON handling
 - 🧼 Logout handled via frontend by removing JWT token (no server-side session)
 
 ---
@@ -28,14 +31,12 @@ This is a secure, serverless backend for a Task Manager app, powered by **Azure 
 - [.NET 8 Isolated Worker SDK](https://learn.microsoft.com/en-us/azure/azure-functions/dotnet-isolated-process-guide)
 - Azure Functions
 - Azure Cosmos DB (NoSQL API)
-- JWT Authentication with `System.IdentityModel.Tokens.Jwt`
+- JWT Authentication (`System.IdentityModel.Tokens.Jwt`)
 - `Newtonsoft.Json` for request/response parsing
 
 ---
 
 ## 🔐 Environment Variables
-
-These must be set for secure token generation and Cosmos DB access.
 
 | Key                        | Description                              |
 | -------------------------- | ---------------------------------------- |
@@ -69,36 +70,44 @@ azurebackend/
 
 ---
 
-## 📬 Example JSON Request: Register/Login
+## 📬 Example JSON Requests
+
+### 🔐 Register/Login
 
 ```json
 {
+  "username": "may_dev",
   "email": "may@example.com",
   "password": "password123"
 }
 ```
 
----
-
-## 🧾 Example JSON Request: Create Task
+### 📄 Create Task
 
 ```json
 {
   "title": "Finish README",
   "description": "Complete the project documentation",
+  "priority": "high",
+  "tags": ["work"],
+  "dueDate": "2025-07-17T00:00:00",
   "userEmail": "may@example.com"
 }
 ```
 
----
+### 📥 Filter Tasks (query string)
+
+- `/api/GetTaskById?priority=high`
+- `/api/GetTaskById?dueDate=2025-07-16`
+- `/api/GetTaskById?isCompleted=false`
 
 ---
 
 ## ✅ Status
 
 ✅ All endpoints implemented  
-✅ CosmosDB integration complete  
-🔜 Frontend connection via Blazor (in progress)
+✅ Cosmos DB integration complete  
+🔜 Frontend UI (Blazor) coming soon
 
 ---
 

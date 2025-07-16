@@ -12,6 +12,8 @@ using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json; // ✅ switched from System.Text.Json
 using azurebackend.Models;
 
+// Same usings...
+
 namespace azurebackend
 {
     public class LoginUser
@@ -34,8 +36,6 @@ namespace azurebackend
             _logger.LogInformation("LoginUser function triggered");
 
             var body = await new StreamReader(req.Body).ReadToEndAsync();
-
-            // ✅ Deserialize using Newtonsoft instead of System.Text.Json
             var loginRequest = JsonConvert.DeserializeObject<UserModel>(body);
 
             if (string.IsNullOrWhiteSpace(loginRequest?.Email) || string.IsNullOrWhiteSpace(loginRequest?.Password))
@@ -84,6 +84,7 @@ namespace azurebackend
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                new Claim(JwtRegisteredClaimNames.UniqueName, user.Username ?? "unknown"),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 

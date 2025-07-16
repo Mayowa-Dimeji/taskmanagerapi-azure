@@ -4,6 +4,7 @@ using System.Linq;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Cosmos;
@@ -34,7 +35,6 @@ namespace azurebackend
         {
             _logger.LogInformation("UpdateTask function triggered");
 
-            // Get Authorization header
             var authHeader = req.Headers.GetValues("Authorization").FirstOrDefault();
             if (authHeader == null || !authHeader.StartsWith("Bearer "))
             {
@@ -54,7 +54,6 @@ namespace azurebackend
                 return unauthorized;
             }
 
-            // Get existing task
             var query = new QueryDefinition("SELECT * FROM c WHERE c.id = @id")
                 .WithParameter("@id", taskId);
 
@@ -68,9 +67,8 @@ namespace azurebackend
                 return notFound;
             }
 
-            // Read update fields from request body
             var body = await new StreamReader(req.Body).ReadToEndAsync();
-            var updates = JObject.Parse(body); // Safe for partial updates
+            var updates = JObject.Parse(body);
 
             var patchOperations = new List<PatchOperation>();
 
@@ -83,6 +81,15 @@ namespace azurebackend
             if (updates.ContainsKey("isCompleted"))
                 patchOperations.Add(PatchOperation.Replace("/isCompleted", updates["isCompleted"]!.ToObject<bool>()));
 
+            if (updates.ContainsKey("priorityLevel"))
+                patchOperations.Add(PatchOperation.Replace("/priorityLevel", updates["priorityLevel"]!.ToString()));
+
+            if (updates.ContainsKey("tags"))
+                patchOperations.Add(PatchOperation.Replace("/tags", updates["tags"]!.ToObject<List<string>>()));
+
+            if (updates.ContainsKey("dueDate"))
+                patchOperations.Add(PatchOperation.Replace("/dueDate", updates["dueDate"]!.ToObject<DateTime>()));
+
             if (patchOperations.Count == 0)
             {
                 var badRequest = req.CreateResponse(System.Net.HttpStatusCode.BadRequest);
@@ -90,7 +97,6 @@ namespace azurebackend
                 return badRequest;
             }
 
-            // Apply patch
             var result = await _container.PatchItemAsync<TaskModel>(
                 taskId,
                 new PartitionKey(userEmail),

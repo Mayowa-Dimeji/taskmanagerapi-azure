@@ -18,5 +18,16 @@ namespace azurebackend.Models
 
         [JsonProperty("userEmail")]
         public string? UserEmail { get; set; }
+
+        [JsonProperty("priorityLevel")]
+        public string? PriorityLevel { get; set; } = "low";
+        [JsonProperty("tag")]
+        public string? Tag { get; set; }
+
+        [JsonProperty("createdAt")]
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        [JsonProperty("dueDate")]
+        public DateTime? DueDate { get; set; }
     }
 }
