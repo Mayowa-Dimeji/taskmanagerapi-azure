@@ -25,7 +25,7 @@ namespace azurebackend
 
         [Function("RegisterUser")]
         public async Task<HttpResponseData> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
+           [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
         {
             _logger.LogInformation("RegisterUser function triggered");
 
@@ -45,6 +45,24 @@ namespace azurebackend
                     return badResponse;
                 }
 
+                // 🔍 Check if user already exists
+                try
+                {
+                    var existingUser = await _container.ReadItemAsync<UserModel>(
+                        user.Email,
+                        new PartitionKey(user.Email)
+                    );
+
+                    // If found, return 409 Conflict
+                    var conflictResponse = req.CreateResponse(System.Net.HttpStatusCode.Conflict);
+                    await conflictResponse.WriteStringAsync("Email already exists.");
+                    return conflictResponse;
+                }
+                catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    // 👍 User does not exist, continue to create
+                }
+
                 user.Id = Guid.NewGuid().ToString();
                 _logger.LogInformation("User before saving: " + JsonConvert.SerializeObject(user));
 
@@ -62,5 +80,6 @@ namespace azurebackend
                 return error;
             }
         }
+
     }
 }

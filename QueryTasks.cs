@@ -49,27 +49,28 @@ namespace azurebackend
             if (string.IsNullOrEmpty(email))
                 return await BadRequest(req, "Invalid token claims");
 
-            // Parse filters
-            var queryParams = System.Web.HttpUtility.ParseQueryString(req.Url.Query);
+            // Parse query params
+            var queryParams = System.Web.HttpUtility.ParseQueryString(req.Url.Query ?? "");
+
             string? priority = queryParams["priority"];
             string? status = queryParams["status"];
             string? due = queryParams["due"]; // today / tomorrow
 
-            // Build dynamic query
-            var sql = "SELECT * FROM c WHERE c.userEmail = @userEmail";
-            var query = new QueryDefinition(sql).WithParameter("@userEmail", email);
+            // Start SQL query and build parameters
+            var sqlBuilder = new StringBuilder("SELECT * FROM c WHERE c.userEmail = @userEmail");
+            var parameters = new Dictionary<string, object> { { "@userEmail", email! } };
 
             if (!string.IsNullOrWhiteSpace(priority))
             {
-                sql += " AND c.priorityLevel = @priority";
-                query.WithParameter("@priority", priority);
+                sqlBuilder.Append(" AND c.priorityLevel = @priority");
+                parameters.Add("@priority", priority);
             }
 
             if (!string.IsNullOrWhiteSpace(status))
             {
                 bool isCompleted = status.ToLower() == "completed";
-                sql += " AND c.isCompleted = @isCompleted";
-                query.WithParameter("@isCompleted", isCompleted);
+                sqlBuilder.Append(" AND c.isCompleted = @isCompleted");
+                parameters.Add("@isCompleted", isCompleted);
             }
 
             if (!string.IsNullOrWhiteSpace(due))
@@ -82,18 +83,16 @@ namespace azurebackend
                     _ => today
                 };
 
-                sql += " AND STARTSWITH(c.dueDate, @dueDate)";
-                query.WithParameter("@dueDate", targetDate.ToString("yyyy-MM-dd"));
+                sqlBuilder.Append(" AND STARTSWITH(c.dueDate, @dueDate)");
+                parameters.Add("@dueDate", targetDate.ToString("yyyy-MM-dd"));
             }
 
-            // Recreate query with appended conditions
-            query = new QueryDefinition(sql).WithParameter("@userEmail", email);
-            if (!string.IsNullOrWhiteSpace(priority))
-                query = query.WithParameter("@priority", priority);
-            if (!string.IsNullOrWhiteSpace(status))
-                query = query.WithParameter("@isCompleted", status.ToLower() == "completed");
-            if (!string.IsNullOrWhiteSpace(due))
-                query = query.WithParameter("@dueDate", DateTime.UtcNow.Date.AddDays(due == "tomorrow" ? 1 : 0).ToString("yyyy-MM-dd"));
+            // Create QueryDefinition once with all parameters
+            var query = new QueryDefinition(sqlBuilder.ToString());
+            foreach (var param in parameters)
+            {
+                query.WithParameter(param.Key, param.Value);
+            }
 
             var iterator = _container.GetItemQueryIterator<TaskModel>(query);
             var results = new List<TaskModel>();
