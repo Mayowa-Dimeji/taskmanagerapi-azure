@@ -61,16 +61,17 @@ namespace azurebackend
                 catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
                     // 👍 User does not exist, continue to create
+
+                    user.Id = Guid.NewGuid().ToString();
+                    _logger.LogInformation("User before saving: " + JsonConvert.SerializeObject(user));
+
+                    await _container.CreateItemAsync(user, new PartitionKey(user.Email));
+
+                    var response = req.CreateResponse(System.Net.HttpStatusCode.Created);
+                    await response.WriteStringAsync("User registered successfully.");
+                    return response;
                 }
 
-                user.Id = Guid.NewGuid().ToString();
-                _logger.LogInformation("User before saving: " + JsonConvert.SerializeObject(user));
-
-                await _container.CreateItemAsync(user, new PartitionKey(user.Email));
-
-                var response = req.CreateResponse(System.Net.HttpStatusCode.Created);
-                await response.WriteStringAsync("User registered successfully.");
-                return response;
             }
             catch (Exception ex)
             {

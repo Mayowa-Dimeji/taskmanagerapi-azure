@@ -13,8 +13,7 @@ builder.Services.AddSingleton(s =>
     return new CosmosClient(connectionString);
 });
 
-// Optional: add your own services here later
-// builder.Services.AddSingleton<IUserService, UserService>();
+
 
 // ⚡ This sets up the Function runtime with HTTP triggers, logging, DI, etc.
 builder.ConfigureFunctionsWebApplication();
